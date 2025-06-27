@@ -47,7 +47,7 @@ const ENDPOINTS: Record<string, string> = {
 }
 
 const SELECTORS: Record<string, string> = {
-  // Container selectors
+  // Contaner selectors
   followingDays: '[data-testid="DailyWeatherModule"] [data-testid="WeatherTable"] > li',
   today: '[id^="WxuTodayWeatherCard-main-"]',
 
@@ -83,6 +83,54 @@ interface DayRoundWeather {
   tempHigh: number | null;
 }
 
+interface Location {
+  placeId: string;
+  name: string;
+}
+
+// Helpers
+
+const displayWeather = async (location: string, today: DayWeather, next: DayRoundWeather[]) => {
+    const chalk = (await import('chalk')).default;
+
+    console.log(`\n${chalk.bold.yellowBright(`Weather for ${location}`)}\n`);
+
+    console.log(chalk.bold.cyan(`Today's Forecast`));
+    console.log(`${chalk.bold('Morning:')} ${today.morningCondition} - ${today.morningTemperature}°F with a ${today.morningChanceOfRain} chance of rain.`);
+    console.log(`${chalk.bold('Afternoon:')} ${today.afternoonCondition} - ${today.afternoonTemperature}°F with a ${today.afternoonChanceOfRain} chance of rain.`);
+    console.log(`${chalk.bold('Evening:')} ${today.eveningCondition} - ${today.eveningTemperature}°F with a ${today.eveningChanceOfRain} chance of rain.`);
+    console.log(`${chalk.bold('Overnight:')} ${today.overnightCondition} - ${today.overnightTemperature}°F with a ${today.overnightChanceOfRain} chance of rain.`);
+
+    console.log(chalk.bold.cyan(`\nUpcoming Days`));
+    next.forEach(day => {
+        console.log(`${chalk.bold(day.date || 'Unknown Date')}: ${day.condition} - High: ${day.tempHigh}°F, Low: ${day.tempLow}°F with a ${day.chanceOfRain} chance of rain.`);
+    });
+
+}
+const fetchLocations = async (query: string): Promise<Location[]> => {
+  const locationResponse = await axios.post(ENDPOINTS.location, [
+    {
+      name: 'getSunV3LocationSearchUrlConfig',
+      params: { query, language: 'en-US', locationType: 'locale' },
+    },
+  ]);
+
+  const dalResponse = locationResponse.data.dal.getSunV3LocationSearchUrlConfig;
+  const dynamicKey = Object.keys(dalResponse)[0];
+  const locationsRaw = dalResponse[dynamicKey].data.location;
+
+  const locations: Location[] = [];
+  if (locationsRaw && locationsRaw.placeId) {
+    for (let i = 0; i < locationsRaw.placeId.length; i++) {
+      locations.push({
+          placeId: locationsRaw.placeId[i],
+          name: `${locationsRaw.city[i]}, ${locationsRaw.adminDistrict[i]}, ${locationsRaw.country[i]}`,
+      });
+    }
+  }
+  return locations
+}
+
 const getWeather = async () => {
   const query = process.argv[2];
   if (!query) {
@@ -91,29 +139,16 @@ const getWeather = async () => {
   }
 
   try {
-    const locationResponse = await axios.post(ENDPOINTS.location, [
-      {
-        name: 'getSunV3LocationSearchUrlConfig',
-        params: { query, language: 'en-US', locationType: 'locale' },
-      },
-    ]);
+  
+    // First retrieve the possible locations for the given query
+    const locations = await fetchLocations(query);
 
-    const dalResponse = locationResponse.data.dal.getSunV3LocationSearchUrlConfig;
-    const dynamicKey = Object.keys(dalResponse)[0];
-    const locations = dalResponse[dynamicKey].data.location;
-
-    const locationChoices = [];
-    if (locations && locations.placeId) {
-      for (let i = 0; i < locations.placeId.length; i++) {
-        locationChoices.push({
-          name: `${locations.city[i]}, ${locations.adminDistrict[i]}, ${locations.country[i]}`,
-          value: {
-            placeId: locations.placeId[i],
-            display: `${locations.city[i]}, ${locations.adminDistrict[i]}, ${locations.country[i]}`,
-          }
-        });
-      }
-    }
+    // Then ask the user which is right
+    // Take the first on non-interactive environments
+    const locationChoices = locations.slice(0, 3).map(location => ({
+      name: location.name,
+      value: location
+    }));
 
     if (locationChoices.length === 0) {
       console.error('No locations found for the given query.');
@@ -127,7 +162,7 @@ const getWeather = async () => {
           type: 'list',
           name: 'selectedLocation',
           message: 'Which location did you mean?',
-          choices: locationChoices.slice(0, 3),
+          choices: locationChoices,
         },
       ]);
       selectedLocation = answer.selectedLocation;
@@ -135,8 +170,11 @@ const getWeather = async () => {
       selectedLocation = locationChoices[0].value;
     }
 
+    // Then fetch the weather page from weather.com
     const weatherPageUrl = `${ENDPOINTS.weatherToday}/l/${selectedLocation.placeId}`;
     const weatherPage = await axios.get(weatherPageUrl);
+
+    // Then scrap the data from the website
     const $ = cheerio.load(weatherPage.data);
 
     const getText = (selector: string, context?: any) => {
@@ -154,9 +192,9 @@ const getWeather = async () => {
         console.error(`Warning: Selector not found: ${selector}`);
         return null;
       }
-      // clone so we don’t mangle the real DOM  
+      // clone so we don't mangle the real DOM  
       // then remove every child element/text node  
-      // then read what's left (the “1%”)
+      // then read what's left (the "1%")
       return $el
         .clone()
         .children()
@@ -218,27 +256,8 @@ const getWeather = async () => {
         });
     });
 
-    const output = {
-      location: selectedLocation.display,
-      today,
-      next,
-    };
-
-    const chalk = (await import('chalk')).default;
-
-    console.log(`\n${chalk.bold.yellowBright(`Weather for ${output.location}`)}\n`);
-
-    console.log(chalk.bold.cyan(`Today's Forecast`));
-    console.log(`${chalk.bold('Morning:')} ${output.today.morningCondition} - ${output.today.morningTemperature}°F with a ${output.today.morningChanceOfRain} chance of rain.`);
-    console.log(`${chalk.bold('Afternoon:')} ${output.today.afternoonCondition} - ${output.today.afternoonTemperature}°F with a ${output.today.afternoonChanceOfRain} chance of rain.`);
-    console.log(`${chalk.bold('Evening:')} ${output.today.eveningCondition} - ${output.today.eveningTemperature}°F with a ${output.today.eveningChanceOfRain} chance of rain.`);
-    console.log(`${chalk.bold('Overnight:')} ${output.today.overnightCondition} - ${output.today.overnightTemperature}°F with a ${output.today.overnightChanceOfRain} chance of rain.`);
-
-    console.log(chalk.bold.cyan(`\nUpcoming Days`));
-    output.next.forEach(day => {
-        console.log(`${chalk.bold(day.date || 'Unknown Date')}: ${day.condition} - High: ${day.tempHigh}°F, Low: ${day.tempLow}°F with a ${day.chanceOfRain} chance of rain.`);
-    });
-
+    // Finally display the data
+    displayWeather(selectedLocation.name, today, next)
 
   } catch (error) {
     console.error('Error fetching weather data:', error);
