@@ -9,8 +9,29 @@
  * 
  * All temperature values are returned in Fahrenheit by default.
  * 
- * Usage: npm start -- [location]
- * Example: npm start -- "New York, NY"
+ * ## Installation
+ * 
+ * To use this tool, you need Node.js and npm installed on your system.
+ * 
+ * 1.  **Install dependencies:**
+ *     ```bash
+ *     npm install
+ *     ```
+ * 
+ * 2.  **Link the package for local development (optional, but recommended for testing):**
+ *     ```bash
+ *     npm link
+ *     ```
+ * 
+ * ## Usage
+ * 
+ * Once installed, you can use the `weather-assistant` command followed by a location.
+ * 
+ * ```bash
+ * weather-assistant "New York, NY"
+ * ```
+ * 
+ * If there are multiple matching locations, you will be prompted to select the correct one.
  * 
  * @author Emmanuel Federbusch
  * @version 1.0.0
@@ -94,14 +115,25 @@ const getWeather = async () => {
       }
     }
 
-    const { selectedLocation } = await inquirer.prompt([
+    if (locationChoices.length === 0) {
+      console.error('No locations found for the given query.');
+      process.exit(1);
+    }
+
+    let selectedLocation;
+    if (locationChoices.length > 1 && process.stdout.isTTY) {
+      const answer = await inquirer.prompt([
         {
-            type: 'list',
-            name: 'selectedLocation',
-            message: 'Which location did you mean?',
-            choices: locationChoices.slice(0, 3),
+          type: 'list',
+          name: 'selectedLocation',
+          message: 'Which location did you mean?',
+          choices: locationChoices.slice(0, 3),
         },
-    ]);
+      ]);
+      selectedLocation = answer.selectedLocation;
+    } else {
+      selectedLocation = locationChoices[0].value;
+    }
 
     const weatherPageUrl = `${ENDPOINTS.weatherToday}/l/${selectedLocation.placeId}`;
     const weatherPage = await axios.get(weatherPageUrl);
@@ -192,7 +224,21 @@ const getWeather = async () => {
       next,
     };
 
-    console.log(JSON.stringify(output, null, 2));
+    const chalk = (await import('chalk')).default;
+
+    console.log(`\n${chalk.bold.yellowBright(`Weather for ${output.location}`)}\n`);
+
+    console.log(chalk.bold.cyan(`Today's Forecast`));
+    console.log(`${chalk.bold('Morning:')} ${output.today.morningCondition} - ${output.today.morningTemperature}°F with a ${output.today.morningChanceOfRain} chance of rain.`);
+    console.log(`${chalk.bold('Afternoon:')} ${output.today.afternoonCondition} - ${output.today.afternoonTemperature}°F with a ${output.today.afternoonChanceOfRain} chance of rain.`);
+    console.log(`${chalk.bold('Evening:')} ${output.today.eveningCondition} - ${output.today.eveningTemperature}°F with a ${output.today.eveningChanceOfRain} chance of rain.`);
+    console.log(`${chalk.bold('Overnight:')} ${output.today.overnightCondition} - ${output.today.overnightTemperature}°F with a ${output.today.overnightChanceOfRain} chance of rain.`);
+
+    console.log(chalk.bold.cyan(`\nUpcoming Days`));
+    output.next.forEach(day => {
+        console.log(`${chalk.bold(day.date || 'Unknown Date')}: ${day.condition} - High: ${day.tempHigh}°F, Low: ${day.tempLow}°F with a ${day.chanceOfRain} chance of rain.`);
+    });
+
 
   } catch (error) {
     console.error('Error fetching weather data:', error);
