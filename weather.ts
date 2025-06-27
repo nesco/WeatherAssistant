@@ -1,5 +1,21 @@
 #!/usr/bin/env node
 
+/**
+ * @fileoverview CLI tool to fetch current weather information from weather.com
+ * 
+ * This module provides a command-line interface to retrieve weather data including:
+ * - Today's weather with morning, afternoon, evening, and overnight forecasts
+ * - Next two days' weather with high/low temperatures and conditions
+ * 
+ * All temperature values are returned in Fahrenheit by default.
+ * 
+ * Usage: npm start -- [location]
+ * Example: npm start -- "New York, NY"
+ * 
+ * @author Emmanuel Federbusch
+ * @version 1.0.0
+ */
+
 import axios from 'axios';
 import inquirer from 'inquirer';
 import * as cheerio from 'cheerio';
