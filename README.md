@@ -6,18 +6,21 @@ A command-line tool to fetch current weather information from weather.com.
 
 To use this tool, you need Node.js and npm installed on your system.
 
-1.  **Clone the repository:**
+1. **Clone the repository:**
+
     ```bash
     git clone <repository_url>
     cd weather-assistant
     ```
 
-2.  **Install dependencies:**
+2. **Install dependencies:**
+
     ```bash
     npm install
     ```
 
-3.  **Link the package for local development (optional, but recommended for testing):**
+3. **Link the package for local development (optional, but recommended for testing):**
+
     ```bash
     npm link
     ```
