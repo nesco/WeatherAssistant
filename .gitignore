@@ -1,0 +1,12 @@
+.DS_Store
+*.swp
+*.swo
+*~
+.vscode/
+node_modules/
+.env
+*.log
+dist/
+build/
+coverage/
+.nyc_output/
