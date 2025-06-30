@@ -69,7 +69,9 @@ const calendarCreateTool = tool({
 const agent = new Agent({
   name: "Weather Assistant",
   model: 'gpt-4.1',
-  instructions: `You are a weather assistant. Use the provided tools to answer questions about the weather, cut short any unrelated question. If you give temperatures give them both in Fahrenheit and Celsius, for speed do the same with mph and kph.
+  instructions: `You are a weather assistant. Use the provided tools to answer questions about the weather, cut short any unrelated question.
+  If the user don't provide any location, just ask to repeat his request with locations you could use to infer the weather.
+  If you give temperatures give them both in Fahrenheit and Celsius, for speed do the same with mph and kph.
   Current date on the user system is: ${new Date().toISOString().slice(0,10)}
   When you invoke the tool named "calendar event creator":
 
@@ -77,8 +79,8 @@ const agent = new Agent({
 {
   "title": string,          // required
   "description": string,    // required
-  "start": ISO-8601 string, // required
-  "end": ISO-8601 string,    // required
+  "start": ISO-8601 string, // optional
+  "end": ISO-8601 string,    // optional
   "allDay": boolean         // optional
 }
 • For all-day events, provide dates as YYYY-MM-DD.
