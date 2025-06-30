@@ -42,3 +42,10 @@ npm run tui "New York, NY"
 ```
 
 If there are multiple matching locations, you will be prompted to select the correct one.
+
+## Approach + Key Engineering & Product decision
+
+- Scrap the data directly from an HTML page instead of using the API. Also a product decision here as it's to demonstrate my engineering skills
+- Build a TUI to be able to test the private API built over scraping weather.com
+- Only retrieve the data from a single page ("/today") to limit latency
+- Use the OpenAI API as their agent framework in Typescript is pleasent to work with
