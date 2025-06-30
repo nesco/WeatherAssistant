@@ -10,3 +10,5 @@ dist/
 build/
 coverage/
 .nyc_output/
+credentials*
+*gcal_token.json

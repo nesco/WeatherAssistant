@@ -39,7 +39,10 @@
 
 import axios from 'axios';
 import inquirer from 'inquirer';
+import minimist from 'minimist';
 import * as cheerio from 'cheerio';
+
+import { getCalendarClient } from './googleAuth';
 
 const ENDPOINTS: Record<string, string> = {
   location: 'https://weather.com/api/v1/p/redux-dal',
@@ -336,7 +339,10 @@ $(SELECTORS.followingDays).slice(1, 3).each((i, el) => {
  * @throws {Error} When location query is missing, no locations found, or weather fetch fails
  */
 const weatherTUI = async () => {
-  const query = process.argv[2];
+  const argv = minimist(process.argv.slice(2));
+  const query = argv._[0];          // city
+  const toCalendar = argv.calendar; // boolean
+
   if (!query) {
     console.error('Please provide a city or zip code.');
     process.exit(1);
@@ -377,6 +383,23 @@ const weatherTUI = async () => {
     const {today, next} = await fetchWeather(selectedLocation.placeId);
     // Finally display the data
     displayWeather(selectedLocation.name, today, next)
+
+    if (toCalendar) {
+      const calendar = await getCalendarClient();
+      const event: any = {
+        summary: `Weather – ${selectedLocation.name}`,
+        description: `High ${today.tempHigh}°F / Low ${today.tempLow}°F\n`
+                   + `${today.currentCondition}`,
+        start: { date: new Date().toISOString().slice(0,10) },
+        end:   { date: new Date().toISOString().slice(0,10) },
+      };
+
+      await calendar.events.insert({
+        calendarId: 'primary',
+        requestBody: event,
+      });
+      console.log('✔ Added to Google Calendar');
+    }
 
   } catch (error) {
     console.error('Error fetching weather data:', error);

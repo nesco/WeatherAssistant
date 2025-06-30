@@ -25,6 +25,8 @@ To use this tool, you need Node.js and npm installed on your system.
     npm link
     ```
 
+4. **Connect to you Google Calendat account**
+
 ## Usage
 
 Once installed, you can use the `weather-assistant` command followed by a location.
