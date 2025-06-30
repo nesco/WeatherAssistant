@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import OpenAI from 'openai';
 import { Agent, run, tool } from '@openai/agents';
 import { z } from 'zod';

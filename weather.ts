@@ -306,7 +306,7 @@ export const fetchWeather = async (placeId: string): Promise<{today: DayWeather,
   };
 
   const next: DayRoundWeather[] = [];
-$(SELECTORS.followingDays).slice(1, 3).each((i, el) => {
+$(SELECTORS.followingDays).slice(1).each((i, el) => {
       const dayCard = $(el);
       const highTemp = normalizeTemperature(dayCard.find(SELECTORS.temperature).first().text());
       const lowTemp = normalizeTemperature(dayCard.find(SELECTORS.temperature).last().text());
