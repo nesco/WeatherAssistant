@@ -25,7 +25,7 @@ To use this tool, you need Node.js and npm installed on your system.
     npm link
     ```
 
-4. **Connect to you Google Calendat account**
+4. **Connect to your Google Calendar account:**
     1. Go to the [Google Cloud Console](https://console.cloud.google.com/).
     2. Create a new project.
     3. Enable the **Google Calendar API**.
@@ -34,7 +34,11 @@ To use this tool, you need Node.js and npm installed on your system.
 
 ## Usage
 
-Once installed, you can use the `weather-assistant` command followed by a queston about the weather at your location to get the weather. The assistant can also create Google Calendar events.
+Once installed, you can use the `weather-assistant` command followed by a question about the weather at your location to get weather information. The assistant can also create Google Calendar events:
+
+```bash
+weather-assistant "What weather will it be tomorrow in Gary, Indiana?"
+```
 
 To launch the weather TUI directly, run:
 ```bash
@@ -43,10 +47,10 @@ npm run tui "New York, NY"
 
 If there are multiple matching locations, you will be prompted to select the correct one.
 
-## Approach + Key Engineering & Product decision
+## Approach + Key Engineering & Product Decisions
 
 - CLI to iterate faster on the engineering part
-- Scrap the data directly from an HTML page instead of using the API by using CSS selectors. Also a product decision here as it's to demonstrate my engineering skills
+- Scrape the data directly from an HTML page instead of using the API by using CSS selectors. This is also a product decision here as it's to demonstrate my engineering skills
 - Build a TUI to be able to test the private API built over scraping weather.com
 - Only retrieve the data from a single page ("/today") to limit latency
-- Use the OpenAI API as their agent framework in Typescript is pleasent to work with
+- Use the OpenAI API as their agent framework in TypeScript is pleasant to work with
