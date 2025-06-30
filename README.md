@@ -45,6 +45,7 @@ If there are multiple matching locations, you will be prompted to select the cor
 
 ## Approach + Key Engineering & Product decision
 
+- CLI to iterate faster on the engineering part
 - Scrap the data directly from an HTML page instead of using the API by using CSS selectors. Also a product decision here as it's to demonstrate my engineering skills
 - Build a TUI to be able to test the private API built over scraping weather.com
 - Only retrieve the data from a single page ("/today") to limit latency
