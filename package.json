@@ -8,7 +8,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npx tsc && chmod +x dist/weather.js && node dist/weather.js",
-    "agent": "npx tsc && node dist/agent.js"
+    "agent": "npx tsc && chmod +x dist/agent.js && node dist/agent.js"
   },
   "keywords": [],
   "author": "",
